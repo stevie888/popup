@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     // Get all users with their basic information
     const users = await executeQuery(
-      'SELECT id, username, name, email, mobile, role, credits, createdAt FROM users ORDER BY createdAt DESC',
+      'SELECT id, username, name, email, mobile, role, credits, created_at FROM users ORDER BY created_at DESC',
       []
     ) as any[];
 

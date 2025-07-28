@@ -10,7 +10,7 @@ export async function GET(
     const userId = params.id;
 
     const users = await executeQuery(
-      'SELECT id, username, email, name, mobile, role, credits, total_rentals, createdAt FROM users WHERE id = ?',
+      'SELECT id, username, email, name, mobile, role, credits, total_rentals, created_at FROM users WHERE id = ?',
       [userId]
     ) as any[];
 
@@ -61,7 +61,7 @@ export async function PATCH(
 
     // Get the updated user
     const updatedUsers = await executeQuery(
-      'SELECT id, username, email, name, mobile, role, credits, total_rentals, createdAt FROM users WHERE id = ?',
+      'SELECT id, username, email, name, mobile, role, credits, total_rentals, created_at FROM users WHERE id = ?',
       [userId]
     ) as any[];
 

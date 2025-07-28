@@ -39,57 +39,34 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Top up credits
+// POST - Update user credits (for rental deductions)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, amount, method } = body;
+    const { userId, credits } = body;
 
-    if (!userId || !amount || amount <= 0) {
+    if (!userId || credits === undefined) {
       return NextResponse.json({
         success: false,
-        error: 'Valid user ID and amount are required'
+        error: 'User ID and credits are required'
       }, { status: 400 });
     }
-
-    // Get current balance
-    const users = await executeQuery(
-      'SELECT credits FROM users WHERE id = ?',
-      [userId]
-    ) as any[];
-
-    if (users.length === 0) {
-      return NextResponse.json({
-        success: false,
-        error: 'User not found'
-      }, { status: 404 });
-    }
-
-    const currentBalance = users[0].credits || 0;
-    const newBalance = currentBalance + amount;
 
     // Update user's credits
     await executeQuery(
       'UPDATE users SET credits = ? WHERE id = ?',
-      [newBalance, userId]
+      [credits, userId]
     );
-
-    // Record transaction
-    await executeQuery(`
-      INSERT INTO credit_transactions (user_id, type, amount, description, method)
-      VALUES (?, 'topup', ?, ?, ?)
-    `, [userId, amount, `Top up ${amount} credits via ${method}`, method]);
 
     return NextResponse.json({
       success: true,
-      newBalance,
-      message: `Successfully added ${amount} credits`
+      message: 'Credits updated successfully'
     });
   } catch (error) {
-    console.error('Error topping up credits:', error);
+    console.error('Error updating credits:', error);
     return NextResponse.json({
       success: false,
-      error: 'Failed to top up credits'
+      error: 'Failed to update credits'
     }, { status: 500 });
   }
 }

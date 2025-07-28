@@ -153,14 +153,14 @@ export async function POST(request: NextRequest) {
 
       await executeQuery('COMMIT');
 
-      // Get the created rental
-      const newRentals = await executeQuery(
+    // Get the created rental
+    const newRentals = await executeQuery(
         'SELECT * FROM rental_history WHERE id = ?',
         [rentalResult.insertId]
-      ) as any[];
+    ) as any[];
 
-      return NextResponse.json({
-        success: true,
+    return NextResponse.json({
+      success: true,
         rental: {
           id: newRentals[0].id,
           userId: newRentals[0].user_id,
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
           creditsUsed: newRentals[0].credits_used
         },
         message: 'Umbrella rented successfully'
-      }, { status: 201 });
+    }, { status: 201 });
 
     } catch (error) {
       await executeQuery('ROLLBACK');

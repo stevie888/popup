@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     }
 
     const users = await executeQuery(
-      'SELECT id, username, email, name, mobile, profileImage, role, credits, total_rentals, createdAt FROM users WHERE id = ?',
+      'SELECT id, username, email, name, mobile, profileImage, role, credits, total_rentals, created_at FROM users WHERE id = ?',
       [userId]
     ) as any[];
 

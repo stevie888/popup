@@ -42,9 +42,9 @@ export async function GET(request: NextRequest) {
 
     // Get recent activities
     const recentUsers = await executeQuery(`
-      SELECT id, username, email, name, role, createdAt 
-      FROM users 
-      ORDER BY createdAt DESC 
+      SELECT id, username, email, name, role, created_at
+FROM users
+ORDER BY created_at DESC 
       LIMIT 5
     `) as any[];
 

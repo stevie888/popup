@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
 
     // Get the created user
     const newUsers = await executeQuery(
-      'SELECT id, username, email, name, mobile, role, credits, createdAt FROM users WHERE id = ?',
+      'SELECT id, username, email, name, mobile, role, credits, created_at FROM users WHERE id = ?',
       [userId]
     ) as any[];
 

@@ -1,45 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
 
-interface Umbrella {
+interface UmbrellaData {
   id: string;
-  description: string;
-  location: string;
-  status: 'available' | 'rented';
-  inventory?: number;
-  created_at?: string;
-  updated_at?: string;
+  station_id: string;
+  station_name: string;
+  status: string;
+  created_at: string;
 }
 
-interface CreateUmbrellaRequest {
-  quantity: number;
-  location: string;
-  status: 'available' | 'rented';
-}
-
-// GET - Get all umbrellas with admin features
+// GET - Get all umbrellas with station information
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
-    const location = searchParams.get('location');
     const search = searchParams.get('search');
 
-    let query = 'SELECT id, description, location, status, inventory, created_at, updated_at FROM umbrellas';
+    let query = `
+      SELECT 
+        u.id,
+        u.station_id,
+        s.name as station_name,
+        u.status,
+        u.created_at
+      FROM umbrellas u
+      LEFT JOIN stations s ON u.station_id = s.id
+    `;
     const params: any[] = [];
 
     // Build WHERE clause dynamically
     const conditions = [];
     if (status) {
-      conditions.push('status = ?');
+      conditions.push('u.status = ?');
       params.push(status);
     }
-    if (location) {
-      conditions.push('location LIKE ?');
-      params.push(`%${location}%`);
-    }
     if (search) {
-      conditions.push('(description LIKE ? OR location LIKE ?)');
+      conditions.push('(s.name LIKE ? OR s.location LIKE ?)');
       params.push(`%${search}%`, `%${search}%`);
     }
 
@@ -47,17 +43,17 @@ export async function GET(request: NextRequest) {
       query += ' WHERE ' + conditions.join(' AND ');
     }
 
-    query += ' ORDER BY id DESC';
+    query += ' ORDER BY u.created_at DESC';
 
-    const umbrellas = await executeQuery(query, params) as Umbrella[];
+    const umbrellas = await executeQuery(query, params) as UmbrellaData[];
 
     // Get statistics
     const statsQuery = `
       SELECT 
         COUNT(*) as total,
-        SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) as available,
-        SUM(CASE WHEN status = 'rented' THEN 1 ELSE 0 END) as rented
-      FROM umbrellas
+        SUM(CASE WHEN u.status = 'available' THEN 1 ELSE 0 END) as available,
+        SUM(CASE WHEN u.status = 'rented' THEN 1 ELSE 0 END) as rented
+      FROM umbrellas u
     `;
     const stats = await executeQuery(statsQuery) as any[];
 
@@ -81,66 +77,67 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { description, quantity, location, status } = body;
+    const { stationId, quantity = 1, status = 'available' } = body;
 
     // Validate input
-    if (!description || !quantity || !location || !status) {
+    if (!stationId) {
       return NextResponse.json(
-        { error: 'All fields are required' },
-        { status: 400 }
-      );
-    }
-    if (status !== 'available' && status !== 'rented') {
-      return NextResponse.json(
-        { error: 'Status must be available or rented' },
+        { error: 'Station ID is required' },
         { status: 400 }
       );
     }
 
-    // Check if an umbrella already exists at this station
-    const existingUmbrella = await executeQuery(
-      'SELECT id, inventory FROM umbrellas WHERE description = ? AND location = ?',
-      [description, location]
+    if (status !== 'available' && status !== 'rented' && status !== 'maintenance' && status !== 'lost') {
+      return NextResponse.json(
+        { error: 'Invalid status' },
+        { status: 400 }
+      );
+    }
+
+    // Check if station exists
+    const station = await executeQuery(
+      'SELECT id, name, location FROM stations WHERE id = ?',
+      [stationId]
     ) as any[];
 
-    let umbrellaId: string;
-    let message: string;
+    if (station.length === 0) {
+      return NextResponse.json(
+        { error: 'Station not found' },
+        { status: 404 }
+      );
+    }
 
-    if (existingUmbrella.length > 0) {
-      // Update existing umbrella inventory
-      const existing = existingUmbrella[0];
-      const newInventory = existing.inventory + quantity;
+    const stationInfo = station[0];
+    const createdUmbrellas = [];
+
+    // Create multiple umbrellas based on quantity
+    for (let i = 0; i < quantity; i++) {
+      const umbrellaId = `umbrella_${Date.now()}_${i}`;
       
       await executeQuery(
-        'UPDATE umbrellas SET inventory = ?, status = ? WHERE id = ?',
-        [newInventory, status, existing.id]
+        'INSERT INTO umbrellas (id, station_id, status) VALUES (?, ?, ?)',
+        [umbrellaId, stationId, status]
       );
 
-      umbrellaId = existing.id;
-      message = `Inventory updated successfully! Added ${quantity} umbrellas to ${description}. Total inventory: ${newInventory}`;
-    } else {
-      // Create new umbrella
-      umbrellaId = Date.now().toString();
-      await executeQuery(
-        'INSERT INTO umbrellas (id, description, inventory, location, status) VALUES (?, ?, ?, ?, ?)',
-        [umbrellaId, description, quantity, location, status]
-      );
-
-      message = `Umbrella created successfully! Added ${quantity} umbrellas to ${description} at ${location}`;
+      createdUmbrellas.push({
+        id: umbrellaId,
+        station_id: stationId,
+        station_name: stationInfo.name,
+        status: status,
+        created_at: new Date().toISOString()
+      });
     }
 
-    // Get the updated/created umbrella
-    const newUmbrellas = await executeQuery(
-      'SELECT id, description, inventory, location, status, created_at, updated_at FROM umbrellas WHERE id = ?',
-      [umbrellaId]
-    ) as any[];
-
-    const newUmbrella = newUmbrellas[0];
+    // Update station umbrella count
+    await executeQuery(
+      'UPDATE stations SET total_umbrellas = total_umbrellas + ?, available_umbrellas = available_umbrellas + ? WHERE id = ?',
+      [quantity, status === 'available' ? quantity : 0, stationId]
+    );
 
     return NextResponse.json({
       success: true,
-      umbrella: newUmbrella,
-      message: message
+      umbrellas: createdUmbrellas,
+      message: `Successfully added ${quantity} umbrella(s) to ${stationInfo.name}`
     }, { status: 201 });
 
   } catch (error) {

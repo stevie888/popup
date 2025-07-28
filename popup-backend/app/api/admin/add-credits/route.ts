@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     // Get updated user data
     const updatedUsers = await executeQuery(
-      'SELECT id, username, name, credits, role, email, mobile, createdAt FROM users WHERE id = ?',
+      'SELECT id, username, name, credits, role, email, mobile, created_at FROM users WHERE id = ?',
       [userId]
     ) as any[];
 
