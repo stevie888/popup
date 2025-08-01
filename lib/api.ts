@@ -32,10 +32,18 @@ async function apiCall(endpoint: string, options: RequestInit = {}) {
 // Authentication API calls
 export const authAPI = {
   // Login user
-  login: async (username: string, password: string) => {
+  login: async (phone: string, password: string) => {
     return apiCall('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ phone, password }),
+    });
+  },
+
+  // Verify authentication token
+  verifyToken: async (token: string) => {
+    return apiCall('/auth/verify', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
     });
   },
 

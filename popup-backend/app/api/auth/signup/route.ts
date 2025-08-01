@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export async function POST(request: NextRequest) {
   try {
@@ -116,10 +119,22 @@ export async function POST(request: NextRequest) {
     ) as any[];
 
     const newUser = newUsers[0];
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        userId: newUser.id, 
+        username: newUser.username,
+        role: newUser.role 
+      },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
     
     return NextResponse.json({
       success: true,
       user: newUser,
+      token: token,
       message: 'User registered successfully'
     }, { 
       status: 201,

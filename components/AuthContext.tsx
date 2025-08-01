@@ -18,7 +18,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (phone: string, password: string) => Promise<boolean>;
   register: (userData: {
     username: string;
     email: string;
@@ -35,6 +35,8 @@ interface AuthContextType {
   }) => Promise<boolean>;
   changePassword: (oldPassword: string, newPassword: string) => Promise<boolean>;
   loading: boolean;
+  checkAuth: () => Promise<void>;
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,38 +44,97 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Load user from localStorage on mount
-  useEffect(() => {
-    const storedUser = localStorage.getItem("popup_user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
-        localStorage.removeItem("popup_user");
+  // Check authentication status from server
+  const checkAuth = async () => {
+    try {
+      console.log('🔍 AuthContext: Checking authentication status...');
+      
+      // Only run on client side
+      if (typeof window === 'undefined') {
+        console.log('🔍 AuthContext: Server side, skipping auth check');
+        setLoading(false);
+        return;
       }
-    }
-    setLoading(false);
-  }, []);
 
-  const saveUser = (userObj: User) => {
-    setUser(userObj);
-    localStorage.setItem("popup_user", JSON.stringify(userObj));
+      const token = localStorage.getItem('auth_token');
+      console.log('🔍 AuthContext: Token from localStorage:', token ? 'Token exists' : 'No token');
+      
+      if (!token) {
+        console.log('🔍 AuthContext: No auth token found');
+        setUser(null);
+        setIsAuthenticated(false);
+        setLoading(false);
+        return;
+      }
+
+      // Call API to verify token and get user data
+      console.log('🔍 AuthContext: Calling verifyToken API...');
+      const response = await api.auth.verifyToken(token);
+      console.log('🔍 AuthContext: Token verification response:', response);
+      
+      if (response.success && response.user) {
+        console.log('✅ AuthContext: Token valid, user authenticated:', response.user.name);
+        setUser(response.user);
+        setIsAuthenticated(true);
+      } else {
+        console.log('❌ AuthContext: Token invalid, clearing auth data');
+        setUser(null);
+        setIsAuthenticated(false);
+        localStorage.removeItem('auth_token');
+      }
+    } catch (error) {
+      console.error('❌ AuthContext: Error checking authentication:', error);
+      setUser(null);
+      setIsAuthenticated(false);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_token');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Login with username/email and password
-  const login = async (username: string, password: string): Promise<boolean> => {
+  // Check auth on mount
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const saveAuthToken = (token: string) => {
+    console.log('💾 AuthContext: saveAuthToken called with token:', token ? 'Token exists' : 'No token');
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('auth_token', token);
+      console.log('💾 AuthContext: Auth token saved to localStorage');
+      // Verify it was saved
+      const savedToken = localStorage.getItem('auth_token');
+      console.log('💾 AuthContext: Verified saved token:', savedToken ? 'Token exists' : 'No token');
+    } else {
+      console.log('💾 AuthContext: Not on client side, cannot save token');
+    }
+  };
+
+  // Login with phone number and password
+  const login = async (phone: string, password: string): Promise<boolean> => {
     try {
+      console.log('🔐 AuthContext: Attempting login with phone:', phone);
       setLoading(true);
-      const response = await api.auth.login(username, password);
-      if (response.success && response.user) {
-        saveUser(response.user);
+      const response = await api.auth.login(phone, password);
+      console.log('🔐 AuthContext: Login response:', response);
+      
+      if (response.success && response.user && response.token) {
+        console.log('✅ AuthContext: Login successful, saving token and user');
+        console.log('🔐 AuthContext: Token received:', response.token ? 'Token exists' : 'No token');
+        console.log('🔐 AuthContext: User received:', response.user);
+        saveAuthToken(response.token);
+        setUser(response.user);
+        setIsAuthenticated(true);
         return true;
       }
+      console.log('❌ AuthContext: Login failed - missing success, user, or token');
       return false;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
       return false;
     } finally {
       setLoading(false);
@@ -91,8 +152,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       const response = await api.auth.signup(userData);
-      if (response.success && response.user) {
-        saveUser(response.user);
+      if (response.success && response.user && response.token) {
+        saveAuthToken(response.token);
+        setUser(response.user);
+        setIsAuthenticated(true);
         return true;
       }
       return false;
@@ -105,8 +168,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
+    console.log('🚪 AuthContext: Logging out user');
     setUser(null);
-    localStorage.removeItem("popup_user");
+    setIsAuthenticated(false);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+      console.log('🚪 AuthContext: User logged out, token removed');
+    }
   };
 
   const updateProfile = async (profile: { 
@@ -121,7 +189,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       const response = await api.user.updateProfile(user.id, profile);
       if (response.success && response.user) {
-        saveUser(response.user);
+        setUser(response.user);
         return true;
       }
       return false;
@@ -137,7 +205,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return false;
     try {
       setLoading(true);
-      // Call a backend endpoint for password change (to be implemented)
       const response = await api.user.updateProfile(user.id, { 
         name: user.name, 
         email: user.email, 
@@ -163,7 +230,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       logout, 
       updateProfile, 
       changePassword,
-      loading 
+      loading,
+      checkAuth,
+      isAuthenticated
     }}>
       {children}
     </AuthContext.Provider>

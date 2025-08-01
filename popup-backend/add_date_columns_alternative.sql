@@ -1,10 +1,9 @@
--- Comprehensive Umbrella Rental System Database Schema
--- This script creates all necessary tables for the umbrella rental application
+-- Simplified Umbrella Rental System Database Schema
+-- This script creates the essential tables for the umbrella rental application
 
 USE popup;
 
 -- Drop existing tables if they exist (for clean setup)
-DROP TABLE IF EXISTS credit_transactions;
 DROP TABLE IF EXISTS rental_history;
 DROP TABLE IF EXISTS umbrellas;
 DROP TABLE IF EXISTS stations;
@@ -18,6 +17,7 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     name VARCHAR(100) NOT NULL,
     mobile VARCHAR(20),
+    role ENUM('user', 'admin') DEFAULT 'user',
     credits INT DEFAULT 200,
     total_rentals INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -65,18 +65,6 @@ CREATE TABLE rental_history (
     FOREIGN KEY (station_id) REFERENCES stations(id) ON DELETE CASCADE
 );
 
--- Create credit_transactions table
-CREATE TABLE credit_transactions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
-    type ENUM('rental', 'topup', 'bonus', 'refund') NOT NULL,
-    amount INT NOT NULL,
-    description VARCHAR(255) NOT NULL,
-    method VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
-
 -- Insert sample data
 
 -- Sample users
@@ -115,14 +103,6 @@ INSERT INTO umbrellas (id, station_id, status) VALUES
 ('umbrella-019', 'station-004', 'available'),
 ('umbrella-020', 'station-004', 'available');
 
--- Sample credit transactions
-INSERT INTO credit_transactions (user_id, type, amount, description, method) VALUES
-('user-001', 'topup', 200, 'Initial credit top up', 'mobile_money'),
-('user-001', 'rental', -50, 'Umbrella rental at Central Park', NULL),
-('user-002', 'topup', 100, 'Credit top up', 'card'),
-('user-002', 'rental', -50, 'Umbrella rental at Times Square', NULL),
-('user-003', 'bonus', 100, 'Welcome bonus', NULL);
-
 -- Sample rental history
 INSERT INTO rental_history (user_id, umbrella_id, station_id, rented_at, status, credits_used) VALUES
 ('user-001', 'umbrella-001', 'station-001', DATE_SUB(NOW(), INTERVAL 2 HOUR), 'completed', 50),
@@ -141,7 +121,6 @@ CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_rental_history_user_id ON rental_history(user_id);
 CREATE INDEX idx_rental_history_status ON rental_history(status);
-CREATE INDEX idx_credit_transactions_user_id ON credit_transactions(user_id);
 CREATE INDEX idx_umbrellas_station_id ON umbrellas(station_id);
 CREATE INDEX idx_umbrellas_status ON umbrellas(status);
 
@@ -155,6 +134,4 @@ SELECT 'Stations', COUNT(*) FROM stations
 UNION ALL
 SELECT 'Umbrellas', COUNT(*) FROM umbrellas
 UNION ALL
-SELECT 'Rental History', COUNT(*) FROM rental_history
-UNION ALL
-SELECT 'Credit Transactions', COUNT(*) FROM credit_transactions; 
+SELECT 'Rental History', COUNT(*) FROM rental_history; 

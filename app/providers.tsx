@@ -6,11 +6,15 @@ import * as React from "react";
 import { HeroUIProvider } from "@heroui/system";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
+import { NextIntlClientProvider } from 'next-intl';
+import { AuthProvider } from "@/components/AuthContext";
 
 export interface ProvidersProps {
   children: React.ReactNode;
   themeProps?: ThemeProviderProps;
   popup: React.ReactNode;
+  messages?: any;
+  locale?: string;
 }
 
 declare module "@react-types/shared" {
@@ -21,19 +25,23 @@ declare module "@react-types/shared" {
   }
 }
 
-export function Providers({ children, themeProps, popup }: ProvidersProps) {
+export function Providers({ children, themeProps, popup, messages, locale }: ProvidersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
 
   return (
-    <HeroUIProvider navigate={router.push}>
-      <NextThemesProvider {...themeProps}>
-        <>
-          {children}
-          {id ? popup : <></>}
-        </>
-      </NextThemesProvider>
-    </HeroUIProvider>
+    <NextIntlClientProvider messages={messages} locale={locale}>
+      <HeroUIProvider navigate={router.push}>
+        <NextThemesProvider {...themeProps}>
+          <AuthProvider>
+            <>
+              {children}
+              {id ? popup : <></>}
+            </>
+          </AuthProvider>
+        </NextThemesProvider>
+      </HeroUIProvider>
+    </NextIntlClientProvider>
   );
 }

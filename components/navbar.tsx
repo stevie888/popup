@@ -6,53 +6,57 @@ import {
   NavbarBrand,
   NavbarItem,
 } from "@heroui/navbar";
-import { Kbd } from "@heroui/kbd";
-import { Input } from "@heroui/input";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 
-import { SearchIcon, Logo } from "@/components/icons";
+import { Logo } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "./AuthContext";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 export const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const router = useRouter();
   
   // More robust role checking
   const isAdmin = user && user.role === 'admin';
-  
-  const searchInput = (
-    <Input
-      aria-label="Search"
-      classNames={{
-        inputWrapper: "bg-default-100",
-        input: "text-sm",
-      }}
-      endContent={
-        <Kbd className="hidden lg:inline-block" keys={["command"]}>
-          K
-        </Kbd>
-      }
-      labelPlacement="outside"
-      placeholder="Search..."
-      startContent={
-        <SearchIcon className="text-base text-default-400 pointer-events-none flex-shrink-0" />
-      }
-      type="search"
-    />
-  );
 
   const handleLogout = () => {
     logout();
-    router.push("/");
+    router.push("/en/login");
   };
+
+  // Don't render user-specific content during loading to prevent hydration mismatch
+  if (loading) {
+    return (
+      <HeroUINavbar maxWidth="xl" position="sticky">
+        <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
+          <NavbarBrand as="li" className="gap-3 max-w-fit">
+            <NextLink className="flex flex-col items-center gap-0" href="/en/dashboard">
+              <div className="flex items-center gap-2">
+                <Logo />
+                <p className="font-bold text-inherit freestyle-script text-2xl mt-2">PopUp</p>
+              </div>
+            </NextLink>
+          </NavbarBrand>
+        </NavbarContent>
+        <NavbarContent
+          className="hidden sm:flex basis-1/5 sm:basis-full"
+          justify="end"
+        >
+          <NavbarItem>
+            <LanguageSwitcher />
+          </NavbarItem>
+        </NavbarContent>
+      </HeroUINavbar>
+    );
+  }
 
   return (
     <HeroUINavbar maxWidth="xl" position="sticky">
       <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
         <NavbarBrand as="li" className="gap-3 max-w-fit">
-          <NextLink className="flex flex-col items-center gap-0" href="/">
+                      <NextLink className="flex flex-col items-center gap-0" href="/en/dashboard">
             <div className="flex items-center gap-2">
             <Logo />
               <p className="font-bold text-inherit freestyle-script text-2xl mt-2">PopUp</p>
@@ -67,16 +71,20 @@ export const Navbar = () => {
         className="hidden sm:flex basis-1/5 sm:basis-full"
         justify="end"
       >
-        <NavbarItem className="hidden lg:flex">{searchInput}</NavbarItem>
+        {/* Language Switcher */}
+        <NavbarItem>
+          <LanguageSwitcher />
+        </NavbarItem>
+        
         {!user && (
           <>
             <NavbarItem>
-              <NextLink href="/login">
+              <NextLink href="/en/login">
                 <Button variant="ghost">Login</Button>
               </NextLink>
             </NavbarItem>
             <NavbarItem>
-              <NextLink href="/signup">
+              <NextLink href="/en/signup">
                 <Button variant="ghost">Sign Up</Button>
               </NextLink>
             </NavbarItem>
@@ -86,14 +94,14 @@ export const Navbar = () => {
           <>
             {!isAdmin && (
               <NavbarItem>
-                <NextLink href="/umbrellas">
+                <NextLink href="/en/dashboard">
                   <Button variant="ghost">Umbrellas</Button>
                 </NextLink>
               </NavbarItem>
             )}
             {isAdmin && (
               <NavbarItem>
-                <NextLink href="/admin">
+                <NextLink href="/en/admin">
                   <Button variant="ghost" className="bg-red-100 text-red-700 hover:bg-red-200">
                     Admin
                   </Button>

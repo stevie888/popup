@@ -18,12 +18,12 @@ export async function OPTIONS(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { username, phone, password } = body;
+    const { token } = body;
 
     // Validate input
-    if (!password || (!username && !phone)) {
+    if (!token) {
       return NextResponse.json(
-        { error: 'Username/phone and password are required' },
+        { error: 'Token is required' },
         { 
           status: 400,
           headers: {
@@ -35,43 +35,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use phone if provided, otherwise use username
-    const loginIdentifier = phone || username;
-    
-    // Clean the login identifier (remove spaces, dashes, etc.)
-    const cleanLoginIdentifier = loginIdentifier.replace(/[\s\-\(\)]/g, '');
-
-    // Find user by username, email, or mobile
-    let users = await executeQuery(
-      'SELECT * FROM users WHERE username = ? OR email = ? OR mobile = ?',
-      [cleanLoginIdentifier, cleanLoginIdentifier, cleanLoginIdentifier]
-    ) as any[];
-
-    // If no exact match found, try with cleaned mobile number
-    if (users.length === 0) {
-      // Try to find by cleaned mobile number (removing dashes from database values)
-      const allUsers = await executeQuery(
-        'SELECT * FROM users',
-        []
-      ) as any[];
-
-      const matchedUser = allUsers.find(user => {
-        const cleanUserMobile = user.mobile?.replace(/[\s\-\(\)]/g, '') || '';
-        const cleanUserUsername = user.username?.replace(/[\s\-\(\)]/g, '') || '';
-        const cleanUserEmail = user.email?.replace(/[\s\-\(\)]/g, '') || '';
-        return cleanUserMobile === cleanLoginIdentifier || 
-               cleanUserUsername === cleanLoginIdentifier || 
-               cleanUserEmail === cleanLoginIdentifier;
-      });
-
-      if (matchedUser) {
-        users = [matchedUser];
-      }
+    // Verify JWT token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET) as any;
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid or expired token' },
+        { 
+          status: 401,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
+        }
+      );
     }
+
+    // Get user from database
+    const users = await executeQuery(
+      'SELECT * FROM users WHERE id = ?',
+      [decoded.userId]
+    ) as any[];
 
     if (users.length === 0) {
       return NextResponse.json(
-        { error: 'User not found. Please sign up first.' },
+        { error: 'User not found' },
         { 
           status: 404,
           headers: {
@@ -85,40 +75,13 @@ export async function POST(request: NextRequest) {
 
     const user = users[0];
 
-    // Check password (in a real app, you'd hash passwords)
-    if (user.password !== password) {
-      return NextResponse.json(
-        { error: 'Invalid password' },
-        { 
-          status: 401,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          },
-        }
-      );
-    }
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { 
-        userId: user.id, 
-        username: user.username,
-        role: user.role 
-      },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    // Return user data (without password) and token
+    // Return user data (without password)
     const { password: _, ...userWithoutPassword } = user;
     
     return NextResponse.json({
       success: true,
       user: userWithoutPassword,
-      token: token,
-      message: 'Login successful'
+      message: 'Token verified successfully'
     }, {
       headers: {
         'Access-Control-Allow-Origin': '*',
@@ -128,7 +91,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Token verification error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { 
