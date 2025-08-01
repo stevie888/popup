@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 23, "column": 0}, "map": {"version":3,"sources":["turbopack://[project]/middleware.ts"],"sourcesContent":["import createMiddleware from 'next-intl/middleware';\n\nexport default createMiddleware({\n  // A list of all locales that are supported\n  locales: ['en', 'ne'],\n\n  // Used when no locale matches\n  defaultLocale: 'en',\n\n  // Always show the locale in the URL\n  localePrefix: 'always'\n});\n\nexport const config = {\n  // Match only internationalized pathnames\n  matcher: [\n    // Enable a redirect to a matching locale at the root\n    '/',\n\n    // Set a cookie to remember the previous locale for\n    // all requests that have a locale prefix\n    '/(en|ne)/:path*',\n\n    // Enable redirects that add missing locales\n    // (e.g. `/profile` -> `/en/profile`)\n    '/((?!_next|_vercel|.*\\\\..*).*)'\n  ]\n}; "],"names":[],"mappings":";;;;AAAA;;uCAEe,CAAA,GAAA,kJAAA,CAAA,UAAgB,AAAD,EAAE;IAC9B,2CAA2C;IAC3C,SAAS;QAAC;QAAM;KAAK;IAErB,8BAA8B;IAC9B,eAAe;IAEf,oCAAoC;IACpC,cAAc;AAChB;AAEO,MAAM,SAAS;IACpB,yCAAyC;IACzC,SAAS;QACP,qDAAqD;QACrD;QAEA,mDAAmD;QACnD,yCAAyC;QACzC;QAEA,4CAA4C;QAC5C,qCAAqC;QACrC;KACD;AACH"}},
+    {"offset": {"line": 53, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"A"}}]
+}

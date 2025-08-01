@@ -1,0 +1,15 @@
+const CHUNK_PUBLIC_PATH = "server/app/[locale]/login/page.js";
+const runtime = require("../../../chunks/ssr/[turbopack]_runtime.js");
+runtime.loadChunk("server/chunks/ssr/node_modules_next_dist_101e1c._.js");
+runtime.loadChunk("server/chunks/ssr/[root of the server]__adba9d._.js");
+runtime.loadChunk("server/chunks/ssr/[root of the server]__571a52._.js");
+runtime.loadChunk("server/chunks/ssr/[root of the server]__e2ab11._.css");
+runtime.loadChunk("server/chunks/ssr/app_error_tsx_b07d46._.js");
+runtime.loadChunk("server/chunks/ssr/node_modules_next_662325._.js");
+runtime.loadChunk("server/chunks/ssr/node_modules_7e215a._.js");
+runtime.loadChunk("server/chunks/ssr/_57fdf2._.js");
+runtime.loadChunk("server/chunks/ssr/messages_40406e._.js");
+runtime.loadChunk("server/chunks/ssr/app_[locale]_login_page_tsx_aa3972._.js");
+runtime.loadChunk("server/chunks/ssr/_e889f9._.js");
+runtime.getOrInstantiateRuntimeModule("[project]/.next-internal/server/app/[locale]/login/page/actions.js [app-rsc] (ecmascript)", CHUNK_PUBLIC_PATH);
+module.exports = runtime.getOrInstantiateRuntimeModule("[project]/node_modules/next/dist/esm/build/templates/app-page.js?page=/[locale]/login/page { MODULE_0 => \"[project]/app/layout.tsx [app-rsc] (ecmascript, Next.js server component)\", MODULE_1 => \"[project]/app/error.tsx [app-rsc] (ecmascript, Next.js server component)\", MODULE_2 => \"[project]/node_modules/next/dist/client/components/not-found-error.js [app-rsc] (ecmascript, Next.js server component)\", MODULE_3 => \"[project]/app/[locale]/layout.tsx [app-rsc] (ecmascript, Next.js server component)\", MODULE_4 => \"[project]/app/[locale]/login/page.tsx [app-rsc] (ecmascript, Next.js server component)\", MODULE_5 => \"[project]/node_modules/next/dist/client/components/parallel-route-default.js [app-rsc] (ecmascript, Next.js server component)\", MODULE_6 => \"[project]/node_modules/next/dist/client/components/parallel-route-default.js [app-rsc] (ecmascript, Next.js server component)\" } [app-rsc] (ecmascript)", CHUNK_PUBLIC_PATH).exports;

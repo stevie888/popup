@@ -35,3 +35,8 @@
 
                           SSEEAARRCCHHIINNGG
 
+[33m24375b7[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m Remove node_modules and .next directories from Git tracking
+[33m6436fc5[m Fix database issues and update admin APIs - Remove credit transactions system - Fix column name mismatches (createdAt -> created_at) - Update admin umbrellas API to work with correct schema - Improve database setup script
+[33mc6677a4[m Remove node_modules from tracking and add .gitignore
+[33m9ee6c3a[m Merge branch 'master' of https://github.com/stevie888/popup
+[33me7ee142[m New updates

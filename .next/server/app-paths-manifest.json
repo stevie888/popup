@@ -1,0 +1,11 @@
+{
+  "/[locale]/page": "app/[locale]/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/[locale]/login/page": "app/[locale]/login/page.js",
+  "/[locale]/dashboard/page": "app/[locale]/dashboard/page.js",
+  "/[locale]/wallet/page": "app/[locale]/wallet/page.js",
+  "/[locale]/scan/page": "app/[locale]/scan/page.js",
+  "/[locale]/history/page": "app/[locale]/history/page.js",
+  "/[locale]/profile/page": "app/[locale]/profile/page.js",
+  "/[locale]/signup/page": "app/[locale]/signup/page.js"
+}

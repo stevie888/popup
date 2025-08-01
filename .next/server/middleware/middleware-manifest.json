@@ -1,0 +1,64 @@
+{
+  "sorted_middleware": [],
+  "middleware": {
+    "/": {
+      "files": [
+        "server/edge/chunks/_0ad36e._.js",
+        "server/edge/chunks/[root of the server]__98ef82._.js",
+        "server/edge/chunks/edge-wrapper_3c522b.js"
+      ],
+      "name": "middleware",
+      "page": "/",
+      "matchers": [
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/(/?index|/?index\\\\.json)?",
+          "originalSource": "/"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/(en|ne)/:path*{(\\\\.json)}?",
+          "originalSource": "/(en|ne)/:path*"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/((?!_next|_vercel|.*\\..*).*){(\\\\.json)}?",
+          "originalSource": "/((?!_next|_vercel|.*\\..*).*)"
+        }
+      ],
+      "wasm": [],
+      "assets": [
+        {
+          "name": "server/edge/chunks/_0ad36e._.js.map",
+          "filePath": "server/edge/chunks/_0ad36e._.js.map"
+        },
+        {
+          "name": "server/edge/chunks/_0ad36e._.js",
+          "filePath": "server/edge/chunks/_0ad36e._.js"
+        },
+        {
+          "name": "server/edge/chunks/[root of the server]__98ef82._.js.map",
+          "filePath": "server/edge/chunks/[root of the server]__98ef82._.js.map"
+        },
+        {
+          "name": "server/edge/chunks/[root of the server]__98ef82._.js",
+          "filePath": "server/edge/chunks/[root of the server]__98ef82._.js"
+        },
+        {
+          "name": "server/edge/chunks/edge-wrapper_3c522b.js.map",
+          "filePath": "server/edge/chunks/edge-wrapper_3c522b.js.map"
+        },
+        {
+          "name": "server/edge/chunks/edge-wrapper_3c522b.js",
+          "filePath": "server/edge/chunks/edge-wrapper_3c522b.js"
+        }
+      ],
+      "env": {
+        "__NEXT_BUILD_ID": "development",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "DS5/PbN+vVYZ5mf0C+EJPKQpolYynPBuyw4U6AWUSIs=",
+        "__NEXT_PREVIEW_MODE_ID": "8ee4ba87e0f9100c65e8fe3de6efb3ee",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "54b61027f8f22b4400cdd448a15a482b8ede00b00159e4ad2dd4282b4f420614",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "aef81ed1d997ebf3d2a8e9b3ef4d3c937a73af44280192dcef0d0bdcb16ab3be"
+      }
+    }
+  },
+  "instrumentation": null,
+  "functions": {}
+}
